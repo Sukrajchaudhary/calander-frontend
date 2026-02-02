@@ -38,7 +38,7 @@ export function EditClassModal({
             description: "",
             instructor: "",
             location: "",
-            capacity: 20,
+            capacity: 0,
       })
 
       // Reset form when event changes
@@ -49,7 +49,7 @@ export function EditClassModal({
                         description: event.description || "",
                         instructor: event.instructor || "",
                         location: event.location || "",
-                        capacity: event.capacity || 20,
+                        capacity: event.capacity ?? 0,
                   })
             }
       }, [event])
@@ -83,7 +83,7 @@ export function EditClassModal({
 
       return (
             <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-                  <DialogContent className="sm:max-w-[500px] bg-card border-border">
+                  <DialogContent className="w-[90vw] h-[80vh] bg-card border-border">
                         <DialogHeader>
                               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                                     <Calendar className="h-5 w-5 text-sky-400" />
@@ -134,7 +134,7 @@ export function EditClassModal({
                                           placeholder="Enter class description (optional)"
                                           value={form.description}
                                           onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                          className="flex min-h-[80px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                                          className="flex  w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                                     />
                               </div>
 
@@ -175,11 +175,20 @@ export function EditClassModal({
                                     <Input
                                           id="edit-capacity"
                                           type="number"
-                                          min={1}
+                                          min={0}
                                           max={500}
-                                          value={form.capacity}
-                                          onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 1 })}
+                                          value={form.capacity || ""}
+                                          onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === "") {
+                                                      setForm({ ...form, capacity: 0 });
+                                                } else {
+                                                      const num = parseInt(value);
+                                                      setForm({ ...form, capacity: isNaN(num) ? 0 : Math.max(0, num) });
+                                                }
+                                          }}
                                           className="w-32"
+                                          placeholder="Enter capacity"
                                     />
                               </div>
                         </div>

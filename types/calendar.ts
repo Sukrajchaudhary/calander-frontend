@@ -15,6 +15,16 @@ export interface TimeSlot {
       endTime: string    // HH:mm format
 }
 
+export interface DayWiseTimeSlot {
+      day: DayOfWeek
+      timeSlots: TimeSlot[]
+}
+
+export interface MonthlyDayWiseTimeSlot {
+      day: number
+      timeSlots: TimeSlot[]
+}
+
 // Recurrence configuration based on API structure
 export interface DailyRecurrence {
       type: 'daily'
@@ -27,28 +37,30 @@ export interface WeeklyRecurrence {
       type: 'weekly'
       startDate: string
       endDate?: string
-      weeklyDays: DayOfWeek[]
-      weeklyTimeSlots: TimeSlot[]
+      dayWiseTimeSlots: DayWiseTimeSlot[]
 }
 
 export interface MonthlyRecurrence {
       type: 'monthly'
       startDate: string
       endDate?: string
-      monthlyDays: number[]  // Day of month (1-31)
-      monthlyTimeSlots: TimeSlot[]
+      monthlyDayWiseSlots: MonthlyDayWiseTimeSlot[]
 }
 
 export interface CustomRecurrence {
       type: 'custom'
       startDate: string
       endDate?: string
-      customDays: DayOfWeek[]
       customInterval: number  // Every N weeks
-      customTimeSlots: TimeSlot[]
+      dayWiseTimeSlots: DayWiseTimeSlot[]
 }
 
-export type RecurrenceConfig = DailyRecurrence | WeeklyRecurrence | MonthlyRecurrence | CustomRecurrence
+
+export type RecurrenceConfig =
+      | DailyRecurrence
+      | WeeklyRecurrence
+      | MonthlyRecurrence
+      | CustomRecurrence
 
 // ===== Status Types =====
 export type ClassStatus = 'active' | 'cancelled' | 'completed'
@@ -201,16 +213,16 @@ export interface CreateClassFormState {
       recurrenceEndDate: Date | undefined
       // Daily
       dailyTimeSlots: TimeSlot[]
-      // Weekly
-      weeklyDays: DayOfWeek[]
-      weeklyTimeSlots: TimeSlot[]
-      // Monthly
-      monthlyDays: number[]
-      monthlyTimeSlots: TimeSlot[]
-      // Custom
-      customDays: DayOfWeek[]
+      // Weekly & Custom
+      dayWiseTimeSlots: DayWiseTimeSlot[]
+      selectedWeeklyDays: DayOfWeek[]
       customInterval: number
-      customTimeSlots: TimeSlot[]
+      // Monthly / Specific Range
+      selectedSpecificDates: string[] // ISO date strings
+      specificDateSlots: { date: string, timeSlots: TimeSlot[] }[]
+      selectedMonthlyDates: number[]
+      monthlyTimeSlots: TimeSlot[]
+      selectedMonthlyDays: DayOfWeek[]
 }
 
 // ===== Query Parameters =====

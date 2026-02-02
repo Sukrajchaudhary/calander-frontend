@@ -1,6 +1,4 @@
 "use client"
-
-import * as React from "react"
 import { useState, useMemo } from "react"
 import {
       format,
@@ -230,8 +228,6 @@ export function ClassSchedule() {
                               event.location?.toLowerCase().includes(query)
                   )
             }
-
-            console.log("[ClassSchedule] Filtered events:", filtered.length, "events", filtered)
             return filtered
       }, [events, eventFilter, searchQuery])
 
@@ -278,9 +274,7 @@ export function ClassSchedule() {
                   refetchCalendar()
                   refetchClasses()
             } catch (err: any) {
-                  console.error("Update status error:", err)
                   const errorData = err.response?.data
-
                   // Handle validation errors with field-specific messages
                   if (errorData?.errors && Array.isArray(errorData.errors)) {
                         const errorMessages = errorData.errors
@@ -340,10 +334,7 @@ export function ClassSchedule() {
 
       const handleUpdateClass = async (id: string, data: UpdateClassRequest) => {
             try {
-                  console.log("Updating class:", id, JSON.stringify(data, null, 2))
-
                   await updateClassMutation.mutateAsync({ id, data })
-
                   success("Class Updated", "The class has been updated successfully")
                   setShowEditModal(false)
                   setSelectedEvent(null)
@@ -352,9 +343,7 @@ export function ClassSchedule() {
                   refetchCalendar()
                   refetchClasses()
             } catch (err: any) {
-                  console.error("Update class error:", err)
                   const errorData = err.response?.data
-
                   // Handle validation errors with field-specific messages
                   if (errorData?.errors && Array.isArray(errorData.errors)) {
                         const errorMessages = errorData.errors
@@ -395,7 +384,7 @@ export function ClassSchedule() {
                                           <CalendarIcon className="h-4 w-4 text-white" />
                                     </div>
                                     <span className="font-semibold text-lg hidden sm:block">Scheduling System
-</span>
+                                    </span>
                               </div>
 
                               {/* Search */}
@@ -530,23 +519,41 @@ export function ClassSchedule() {
                                     {/* Day/Week/Month Toggle */}
                                     <div className="flex items-center p-1 bg-muted/50 rounded-lg">
                                           <Button
-                                                variant={dateViewMode === "day" ? "secondary" : "ghost"}
+                                                variant={dateViewMode === "day" ? "default" : "ghost"}
                                                 size="sm"
                                                 onClick={() => setDateViewMode("day")}
+                                                className={cn(
+                                                      "transition-all duration-200 rounded-sm",
+                                                      dateViewMode === "day"
+                                                            ? "bg-[#FFDFBE] text-black shadow-sm hover:bg-[#FFDFBE]/90"
+                                                            : "hover:bg-muted"
+                                                )}
                                           >
                                                 Day
                                           </Button>
                                           <Button
-                                                variant={dateViewMode === "week" ? "secondary" : "ghost"}
+                                                variant={dateViewMode === "week" ? "default" : "ghost"}
                                                 size="sm"
                                                 onClick={() => setDateViewMode("week")}
+                                                className={cn(
+                                                      "transition-all duration-200",
+                                                      dateViewMode === "week"
+                                                            ? "bg-[#FFDFBE] text-black shadow-sm hover:bg-[#FFDFBE]/90"
+                                                            : "hover:bg-muted"
+                                                )}
                                           >
                                                 Week
                                           </Button>
                                           <Button
-                                                variant={dateViewMode === "month" ? "secondary" : "ghost"}
+                                                variant={dateViewMode === "month" ? "default" : "ghost"}
                                                 size="sm"
                                                 onClick={() => setDateViewMode("month")}
+                                                className={cn(
+                                                      "transition-all duration-200",
+                                                      dateViewMode === "month"
+                                                            ? "bg-[#FFDFBE] text-black shadow-sm hover:bg-[#FFDFBE]/90"
+                                                            : "hover:bg-muted"
+                                                )}
                                           >
                                                 Month
                                           </Button>

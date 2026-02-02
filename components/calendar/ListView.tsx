@@ -69,11 +69,8 @@ export function ListView({
             if (!event.isRecurring || !event.recurrence) return []
 
             const recurrence = event.recurrence
-            if (recurrence.type === "weekly" && "weeklyDays" in recurrence) {
-                  return recurrence.weeklyDays
-            }
-            if (recurrence.type === "custom" && "customDays" in recurrence) {
-                  return recurrence.customDays
+            if ((recurrence.type === "weekly" || recurrence.type === "custom") && "dayWiseTimeSlots" in recurrence) {
+                  return recurrence.dayWiseTimeSlots.map(d => d.day)
             }
             if (recurrence.type === "daily") {
                   return DAYS_OF_WEEK // All days
