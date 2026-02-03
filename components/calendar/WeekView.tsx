@@ -6,7 +6,7 @@ import type {
   InstanceStatus,
   ClassStatus,
 } from "@/types/calendar";
-import { User, MapPin, Users, Clock, XCircle, RefreshCcw } from "lucide-react";
+import { User, MapPin, Users, Clock, XCircle, RefreshCcw, CheckCircle } from "lucide-react";
 
 
 interface WeekViewProps {
@@ -84,6 +84,10 @@ export function WeekView({ currentDate, events, onEventClick }: WeekViewProps) {
     return status === "cancelled";
   };
 
+  const isCompleted = (status: InstanceStatus | ClassStatus) => {
+    return status === "completed";
+  };
+
   return (
     <div className="flex flex-col">
       {/* Header Row */}
@@ -156,6 +160,14 @@ export function WeekView({ currentDate, events, onEventClick }: WeekViewProps) {
                           <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5">
                             <XCircle className="h-2.5 w-2.5" />
                             CANCELLED
+                          </div>
+                        )}
+
+                        {/* Completed Badge */}
+                        {isCompleted(event.status) && (
+                          <div className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+                            <CheckCircle className="h-2.5 w-2.5" />
+                            COMPLETED
                           </div>
                         )}
 

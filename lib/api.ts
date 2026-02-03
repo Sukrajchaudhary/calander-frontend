@@ -101,6 +101,21 @@ export const classApi = {
             const { data } = await api.post(`/calander/${classId}/regenerate`)
             return data
       },
+
+      // Update specific instance by date (PUT)
+      updateSpecificInstance: async (
+            classId: string,
+            scheduledDate: string,
+            instanceData: UpdateInstanceRequest,
+            startTime?: string
+      ): Promise<ApiResponse<ClassInstance>> => {
+            const params: any = { scheduledDate };
+            if (startTime) {
+                  params.startTime = startTime;
+            }
+            const { data } = await api.put(`/calander/${classId}/instances/specific`, instanceData, { params })
+            return data
+      },
 }
 
 // ===== Instances API =====

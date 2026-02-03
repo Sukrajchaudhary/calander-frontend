@@ -13,6 +13,7 @@ export type DayOfWeek =
 export interface TimeSlot {
       startTime: string  // HH:mm format
       endTime: string    // HH:mm format
+      status?: InstanceStatus
 }
 
 export interface DayWiseTimeSlot {
@@ -159,10 +160,20 @@ export interface UpdateClassRequest {
       capacity?: number
       availability?: boolean
       status?: ClassStatus
+      startTime?: string
+      endTime?: string
+      recurrence?: RecurrenceConfig
+      isRecurring?: boolean
+      scheduledDate?: string // allowing date change for one-time class
 }
 
 export interface UpdateInstanceRequest {
-      status: InstanceStatus
+      status?: InstanceStatus
+      startTime?: string
+      endTime?: string
+      location?: string
+      description?: string
+      capacity?: number
 }
 
 // ===== API Response Types =====

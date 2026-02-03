@@ -194,6 +194,39 @@ export function useUpdateInstanceStatus() {
       })
 }
 
+export function useUpdateSpecificInstance() {
+      const queryClient = useQueryClient()
+
+      return useMutation({
+            mutationFn: async ({
+                  classId,
+                  scheduledDate,
+                  data,
+                  startTime,
+            }: {
+                  classId: string
+                  scheduledDate: string
+                  data: UpdateInstanceRequest
+                  startTime?: string
+            }) => {
+                  console.log('[useUpdateSpecificInstance] Updating:', { classId, scheduledDate, data })
+                  const response = await classApi.updateSpecificInstance(classId, scheduledDate, data, startTime)
+                  console.log('[useUpdateSpecificInstance] Response:', response)
+                  return response
+            },
+            onSuccess: (_, variables) => {
+                  // Invalidate all instance-related queries
+                  queryClient.invalidateQueries({ queryKey: queryKeys.classInstances(variables.classId) })
+                  queryClient.invalidateQueries({ queryKey: ['instances'] })
+                  queryClient.invalidateQueries({ queryKey: ['calendar'] })
+                  queryClient.invalidateQueries({ queryKey: ['classes'] })
+            },
+            onError: (error: any) => {
+                  console.error('[useUpdateSpecificInstance] Error:', error.response?.data || error.message)
+            },
+      })
+}
+
 // Calendar hooks
 export function useCalendarView(params: GetCalendarParams) {
       return useQuery({

@@ -41,6 +41,7 @@ import {
       useUpdateClass,
       useUpdateClassStatus,
       useUpdateInstanceStatus,
+      useUpdateSpecificInstance,
       useDeleteClass,
 } from "@/hooks/useCalendarApi"
 import { WeekView } from "./WeekView"
@@ -168,6 +169,7 @@ export function ClassSchedule() {
       const updateClassMutation = useUpdateClass()
       const updateClassStatusMutation = useUpdateClassStatus()
       const updateInstanceStatusMutation = useUpdateInstanceStatus()
+      const updateSpecificInstanceMutation = useUpdateSpecificInstance()
       const deleteClassMutation = useDeleteClass()
 
       // Transform API data to CalendarEvent format
@@ -185,6 +187,13 @@ export function ClassSchedule() {
             if (calendarData?.data && Array.isArray(calendarData.data) && calendarData.data.length > 0) {
                   apiEvents = calendarData.data.map((item: any) => {
                         let displayStatus = item.status
+                        // Normalize 'canceled' or 'CANCELLED' to 'cancelled'
+                        if (typeof displayStatus === 'string' && displayStatus.toLowerCase() === 'canceled') {
+                              displayStatus = 'cancelled'
+                        } else if (typeof displayStatus === 'string' && displayStatus.toLowerCase() === 'cancelled') {
+                              displayStatus = 'cancelled'
+                        }
+
                         if (displayStatus === "active") displayStatus = "scheduled"
 
                         return {
@@ -210,6 +219,13 @@ export function ClassSchedule() {
             else if (classesData?.data && Array.isArray(classesData.data)) {
                   apiEvents = classesData.data.map((cls: any) => {
                         let displayStatus = cls.status
+                        // Normalize 'canceled' or 'CANCELLED' to 'cancelled'
+                        if (typeof displayStatus === 'string' && displayStatus.toLowerCase() === 'canceled') {
+                              displayStatus = 'cancelled'
+                        } else if (typeof displayStatus === 'string' && displayStatus.toLowerCase() === 'cancelled') {
+                              displayStatus = 'cancelled'
+                        }
+
                         if (displayStatus === "active") displayStatus = "scheduled"
 
                         return {
@@ -432,6 +448,35 @@ export function ClassSchedule() {
             refetchCalendar()
             refetchClasses()
             info("Refreshing data...")
+      }
+
+      const handleUpdateSpecificInstance = async (
+            classId: string,
+            scheduledDate: string,
+            data: any, // Using any here to avoid strict type checks temporarily but we know the structure
+            startTime?: string
+      ) => {
+            try {
+                  await updateSpecificInstanceMutation.mutateAsync({
+                        classId,
+                        scheduledDate,
+                        data,
+                        startTime,
+                  })
+                  success("Instance Updated", "The specific class instance has been updated")
+                  setShowEditModal(false)
+                  setSelectedEvent(null)
+
+                  // Refetch data
+                  refetchCalendar()
+                  refetchClasses()
+            } catch (err: any) {
+                  const errorData = err.response?.data
+                  showError(
+                        errorData?.title || "Update Failed",
+                        errorData?.message || err.message || "Failed to update instance"
+                  )
+            }
       }
 
       const isLoading = isLoadingCalendar || isLoadingClasses
@@ -693,8 +738,9 @@ export function ClassSchedule() {
                               setSelectedEvent(null)
                         }}
                         onSubmit={handleUpdateClass}
+                        onUpdateInstance={handleUpdateSpecificInstance}
                         event={selectedEvent}
-                        isLoading={updateClassMutation.isPending}
+                        isLoading={updateClassMutation.isPending || updateSpecificInstanceMutation.isPending}
                   />
 
                   {/* Delete Confirmation Dialog */}
