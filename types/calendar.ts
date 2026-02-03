@@ -248,6 +248,7 @@ export interface CreateClassFormState {
       instructor: string
       location: string
       capacity: number
+      availability: boolean
       isRecurring: boolean
       // One-time fields
       scheduledDate: Date | undefined

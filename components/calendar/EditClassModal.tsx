@@ -15,6 +15,7 @@ import {
       DialogHeader,
       DialogTitle,
 } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
 import {
       Select,
       SelectContent,
@@ -52,6 +53,7 @@ export function EditClassModal({
             startTime: string
             endTime: string
             status: string
+            availability: boolean
       }>({
             title: "",
             description: "",
@@ -61,9 +63,10 @@ export function EditClassModal({
             startTime: "",
             endTime: "",
             status: "scheduled",
+            availability: true,
       })
 
-      // Reset form when event changes
+
       useEffect(() => {
             if (event) {
                   setForm({
@@ -75,6 +78,7 @@ export function EditClassModal({
                         startTime: event.startTime || "",
                         endTime: event.endTime || "",
                         status: event.status || "scheduled",
+                        availability: event.availability ?? true,
                   })
                   // Default to series if recurring, otherwise irrelevant (but UI will hide toggle)
                   setUpdateScope('series')
@@ -84,7 +88,7 @@ export function EditClassModal({
       const handleSubmit = () => {
             if (!event) return
 
-            // Handle Specific Instance Update
+
             if (updateScope === 'instance' && onUpdateInstance && event.isRecurring) {
                   const instanceData: UpdateInstanceRequest = {}
 
@@ -105,7 +109,7 @@ export function EditClassModal({
                   return
             }
 
-            // Handle Series/Class Update
+
             const updateData: UpdateClassRequest = {}
 
             if (form.title !== event.title) updateData.title = form.title
@@ -113,6 +117,7 @@ export function EditClassModal({
             if (form.instructor !== event.instructor) updateData.instructor = form.instructor
             if (form.location !== event.location) updateData.location = form.location
             if (form.capacity !== event.capacity) updateData.capacity = form.capacity
+            if (form.availability !== event.availability) updateData.availability = form.availability
 
             // Map 'scheduled' back to 'active' for Class Status if changed
             if (form.status !== event.status) {
@@ -138,8 +143,8 @@ export function EditClassModal({
 
       return (
             <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-                  <DialogContent className="w-[90vw] h-[80vh] bg-card border-border overflow-y-auto">
-                        <DialogHeader>
+                  <DialogContent className="w-[90vw] h-[85vh] bg-card border-border overflow-y-auto rounded-xl shadow-2xl">
+                        <DialogHeader className="py-4 border-b bg-gradient-to-r from-muted/20 to-background">
                               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                                     <Calendar className="h-5 w-5 text-sky-400" />
                                     {event.isRecurring && updateScope === 'instance' ? 'Edit Instance' : 'Edit Class'}
@@ -152,14 +157,14 @@ export function EditClassModal({
                         </DialogHeader>
 
                         <div className="space-y-6 py-4">
-                              {/* Scope Toggle for Recurring Events */}
+
                               {event.isRecurring && (
                                     <div className="p-1 bg-muted rounded-lg flex gap-1">
                                           <button
                                                 type="button"
                                                 onClick={() => setUpdateScope('series')}
                                                 className={cn(
-                                                      "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                                      "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all cursor-pointer",
                                                       updateScope === 'series'
                                                             ? "bg-background shadow-sm text-foreground"
                                                             : "text-muted-foreground hover:bg-background/50"
@@ -172,7 +177,7 @@ export function EditClassModal({
                                                 type="button"
                                                 onClick={() => setUpdateScope('instance')}
                                                 className={cn(
-                                                      "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                                      "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all cursor-pointer",
                                                       updateScope === 'instance'
                                                             ? "bg-background shadow-sm text-foreground"
                                                             : "text-muted-foreground hover:bg-background/50"
@@ -184,7 +189,7 @@ export function EditClassModal({
                                     </div>
                               )}
 
-                              {/* Class Info - Date Display */}
+
                               <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
                                     <div className="flex items-center gap-2 text-sm">
                                           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -201,28 +206,45 @@ export function EditClassModal({
                                     )}
                               </div>
 
-                              {/* Status Selection */}
-                              <div className="space-y-2">
-                                    <Label htmlFor="edit-status" className="flex items-center gap-2">
-                                          <Activity className="h-4 w-4" />
-                                          Status
-                                    </Label>
-                                    <Select
-                                          value={form.status}
-                                          onValueChange={(value) => setForm({ ...form, status: value })}
-                                    >
-                                          <SelectTrigger id="edit-status">
-                                                <SelectValue placeholder="Select status" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                                <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                                                <SelectItem value="completed">Completed</SelectItem>
-                                          </SelectContent>
-                                    </Select>
+
+
+
+                              <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                          <Label htmlFor="edit-status" className="flex items-center gap-2">
+                                                <Activity className="h-4 w-4" />
+                                                Status
+                                          </Label>
+                                          <Select
+                                                value={form.status}
+                                                onValueChange={(value) => setForm({ ...form, status: value })}
+                                          >
+                                                <SelectTrigger id="edit-status">
+                                                      <SelectValue placeholder="Select status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                                                      <SelectItem value="completed">Completed</SelectItem>
+                                                </SelectContent>
+                                          </Select>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3 justify-end pb-1">
+                                          <div className="flex items-center justify-between p-2 border rounded-md bg-muted/20">
+                                                <Label htmlFor="edit-availability" className="cursor-pointer">Available</Label>
+                                                <Switch
+                                                      id="edit-availability"
+                                                      checked={form.availability}
+                                                      onCheckedChange={(c) => setForm({ ...form, availability: c })}
+                                                      disabled={updateScope === 'instance'}
+                                                      className="data-[state=checked]:bg-sky-500"
+                                                />
+                                          </div>
+                                    </div>
                               </div>
 
-                              {/* Title */}
+
                               <div className="space-y-2">
                                     <Label htmlFor="edit-title" className="flex items-center gap-2">
                                           <FileText className="h-4 w-4" />
@@ -237,7 +259,7 @@ export function EditClassModal({
                                     />
                               </div>
 
-                              {/* Time Editing */}
+
                               <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                           <Label htmlFor="edit-start-time">Start Time</Label>
@@ -259,7 +281,7 @@ export function EditClassModal({
                                     </div>
                               </div>
 
-                              {/* Description */}
+
                               <div className="space-y-2">
                                     <Label htmlFor="edit-description">Description</Label>
                                     <textarea
@@ -271,7 +293,7 @@ export function EditClassModal({
                                     />
                               </div>
 
-                              {/* Instructor & Location */}
+
                               <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                           <Label htmlFor="edit-instructor" className="flex items-center gap-2">
@@ -299,7 +321,7 @@ export function EditClassModal({
                                     </div>
                               </div>
 
-                              {/* Capacity */}
+
                               <div className="space-y-2">
                                     <Label htmlFor="edit-capacity" className="flex items-center gap-2">
                                           <Users className="h-4 w-4" />
@@ -326,6 +348,8 @@ export function EditClassModal({
                               </div>
                         </div>
 
+
+
                         <DialogFooter className="gap-2">
                               <Button variant="outline" onClick={handleClose} disabled={isLoading}>
                                     Cancel
@@ -346,6 +370,6 @@ export function EditClassModal({
                               </Button>
                         </DialogFooter>
                   </DialogContent>
-            </Dialog>
+            </Dialog >
       )
 }

@@ -56,7 +56,7 @@ const DAYS: { id: DayOfWeek; label: string }[] = [
       { id: "saturday", label: "Saturday" },
 ]
 
-// Basic constants removed, now dynamic logic in component
+
 
 const DEFAULT_FORM_STATE: CreateClassFormState = {
       // Basic info
@@ -65,6 +65,7 @@ const DEFAULT_FORM_STATE: CreateClassFormState = {
       instructor: "",
       location: "",
       capacity: 0,
+      availability: true,
       isRecurring: false,
       // One-time fields
       scheduledDate: undefined,
@@ -100,7 +101,7 @@ export function CreateClassModal({
             setForm((prev: CreateClassFormState) => ({ ...prev, [key]: value }))
       }
 
-      // SlotRow Helper
+
       const renderSlotRow = (
             key: string,
             label: string,
@@ -151,7 +152,7 @@ export function CreateClassModal({
             </div>
       )
 
-      // Time Slot Handlers (Daily, Yearly)
+
       const updateTimeSlot = (type: "daily" | "yearly" | "weekly" | "monthly", index: number, field: keyof TimeSlot, value: string) => {
             const key = `${type}TimeSlots` as keyof CreateClassFormState
             const currentSlots = form[key] as TimeSlot[]
@@ -173,7 +174,7 @@ export function CreateClassModal({
             updateForm(key as any, currentSlots.filter((_, i) => i !== index))
       }
 
-      // Day-Wise Slot Handlers (Weekly, Custom)
+
       const addDayTimeSlot = (day: DayOfWeek) => {
             const dayWiseTimeSlots = [...form.dayWiseTimeSlots]
             const dayIndex = dayWiseTimeSlots.findIndex((d) => d.day === day)
@@ -287,7 +288,7 @@ export function CreateClassModal({
             }
       }
 
-      // Helper for formatting date
+
       const getOrdinal = (d: number) => {
             if (d > 3 && d < 21) return d + 'th';
             switch (d % 10) {
@@ -315,6 +316,7 @@ export function CreateClassModal({
                         scheduledDate: formatDateForApi(form.scheduledDate),
                         startTime: form.startTime,
                         endTime: form.endTime,
+                        availability: form.availability,
                   }
             } else {
                   const baseRequest = {
@@ -323,6 +325,7 @@ export function CreateClassModal({
                         instructor: form.instructor || undefined,
                         location: form.location || undefined,
                         capacity: form.capacity,
+                        availability: form.availability,
                         isRecurring: true as const,
                   }
 
@@ -388,8 +391,8 @@ export function CreateClassModal({
 
       return (
             <Dialog open={isOpen} onOpenChange={handleClose}>
-                  <DialogContent className="max-w-[50vw] w-[50vw] h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden">
-                        <DialogHeader className="p-6 border-b bg-muted/20">
+                  <DialogContent className="max-w-[55vw] w-[55vw] h-[95vh] max-h-[95vh] p-0 flex flex-col overflow-hidden rounded-xl border-none shadow-2xl">
+                        <DialogHeader className="p-6 border-b bg-gradient-to-r from-muted/20 to-background flex-shrink-0">
                               <DialogTitle className="text-2xl font-bold text-sky-600">Create Class Schedule</DialogTitle>
                               <DialogDescription className="text-muted-foreground">
                                     Schedule a new class, either as a one-off event or a recurring series.
@@ -397,7 +400,7 @@ export function CreateClassModal({
                         </DialogHeader>
 
                         <div className="flex-1 overflow-y-auto p-8 space-y-10">
-                              {/* Basic Information */}
+
                               <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                           <div>
@@ -447,6 +450,20 @@ export function CreateClassModal({
                                                       value={form.capacity}
                                                       onChange={(e) => updateForm("capacity", parseInt(e.target.value) || 0)}
                                                       className="h-10"
+                                                />
+                                          </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-2">
+                                          <div className="flex items-center justify-between p-3 border rounded-lg bg-background/50">
+                                                <div className="space-y-0.5">
+                                                      <Label className="text-base font-medium">Availability</Label>
+                                                      <p className="text-xs text-muted-foreground">Make this class available for booking</p>
+                                                </div>
+                                                <Switch
+                                                      checked={form.availability}
+                                                      onCheckedChange={(checked) => updateForm("availability", checked)}
+                                                      className="data-[state=checked]:bg-sky-500"
                                                 />
                                           </div>
                                     </div>

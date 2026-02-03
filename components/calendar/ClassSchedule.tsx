@@ -70,10 +70,10 @@ import {
 } from "lucide-react"
 
 export function ClassSchedule() {
-      // Toast hook
+
       const { toasts, removeToast, success, error: showError, info, warning } = useToast()
 
-      // State
+
       const [viewMode, setViewMode] = useState<ViewMode>("calendar")
       const [dateViewMode, setDateViewMode] = useState<DateViewMode>("week")
       const [currentDate, setCurrentDate] = useState(new Date())
@@ -87,7 +87,7 @@ export function ClassSchedule() {
       const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
       const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null)
 
-      // Debounce search query for API calls
+
       React.useEffect(() => {
             const timer = setTimeout(() => {
                   setDebouncedSearch(searchQuery)
@@ -96,7 +96,7 @@ export function ClassSchedule() {
       }, [searchQuery])
 
 
-      // Calculate date range based on view mode
+
       const dateRange = useMemo(() => {
             if (dateViewMode === "day") {
                   // For day view, end date must be after start date for API
@@ -131,7 +131,7 @@ export function ClassSchedule() {
             }
       }, [currentDate, dateViewMode])
 
-      // Build status filter for API
+
       const statusFilter = useMemo(() => {
             if (eventFilter === "all") return undefined
             // Map "scheduled" back to "active" for the API
@@ -139,7 +139,7 @@ export function ClassSchedule() {
             return eventFilter
       }, [eventFilter])
 
-      // API queries - Get calendar view with status filter
+
       const {
             data: calendarData,
             isLoading: isLoadingCalendar,
@@ -152,7 +152,7 @@ export function ClassSchedule() {
             status: statusFilter as InstanceStatus | undefined,
       })
 
-      // Get all classes for list view
+
       const {
             data: classesData,
             isLoading: isLoadingClasses,
@@ -164,7 +164,7 @@ export function ClassSchedule() {
             limit: 100,
       })
 
-      // Mutations
+
       const createClassMutation = useCreateClass()
       const updateClassMutation = useUpdateClass()
       const updateClassStatusMutation = useUpdateClassStatus()
@@ -172,7 +172,7 @@ export function ClassSchedule() {
       const updateSpecificInstanceMutation = useUpdateSpecificInstance()
       const deleteClassMutation = useDeleteClass()
 
-      // Transform API data to CalendarEvent format
+
       const events: CalendarEvent[] = useMemo(() => {
             console.log("[ClassSchedule] Processing data transformation", {
                   hasCalendarData: !!calendarData?.data?.length,
@@ -252,7 +252,7 @@ export function ClassSchedule() {
             return apiEvents
       }, [calendarData, classesData])
 
-      // Filter events by search query (status is already filtered by API)
+
       const filteredEvents = useMemo(() => {
             let filtered = events
 
@@ -274,7 +274,7 @@ export function ClassSchedule() {
             return filtered
       }, [events, eventFilter, searchQuery])
 
-      // Navigation handlers
+
       const goToToday = () => {
             setCurrentDate(new Date())
             info("Navigated to today")
@@ -300,7 +300,7 @@ export function ClassSchedule() {
             }
       }
 
-      // Handlers
+
       const handleEventClick = (event: CalendarEvent) => {
             setSelectedEvent(event)
             setShowEditModal(true)
@@ -350,7 +350,7 @@ export function ClassSchedule() {
             }
       }
 
-      // Handle delete class
+
       const handleDeleteClick = (event: CalendarEvent) => {
             setEventToDelete(event)
             setShowDeleteDialog(true)
@@ -484,13 +484,13 @@ export function ClassSchedule() {
 
       return (
             <div className="min-h-screen bg-background text-foreground">
-                  {/* Toast Container */}
+
                   <ToastContainer toasts={toasts} onClose={removeToast} />
 
-                  {/* Top Bar */}
+
                   <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur ">
                         <div className="flex items-center justify-between h-16 px-6">
-                              {/* Logo */}
+
                               <div className="flex items-center gap-4">
                                     <div className="h-8 w-8 rounded  from-sky-500 to-indigo-600 flex items-center justify-center">
                                           <CalendarIcon className="h-4 w-4 text-white" />
@@ -499,7 +499,7 @@ export function ClassSchedule() {
                                     </span>
                               </div>
 
-                              {/* Search */}
+
                               <div className="flex-1 max-w-md mx-8">
                                     <Input
                                           icon={<Search className="h-4 w-4" />}
@@ -510,7 +510,7 @@ export function ClassSchedule() {
                                     />
                               </div>
 
-                              {/* Branch Selector & Actions */}
+
                               <div className="flex items-center gap-4">
                                     <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                                           <SelectTrigger className="w-44">
@@ -531,7 +531,7 @@ export function ClassSchedule() {
                   </header>
 
                   <main className="p-6">
-                        {/* Tab Navigation */}
+
                         <div className="flex items-center gap-2 mb-6">
                               <Button variant="default" size="sm" className="bg-sky-500 hover:bg-sky-600">
                                     Class Schedule
@@ -541,7 +541,7 @@ export function ClassSchedule() {
                               </Button>
                         </div>
 
-                        {/* Page Header */}
+
                         <div className="flex items-center justify-between mb-6">
                               <div>
                                     <h1 className="text-2xl font-semibold">Class Schedule</h1>
@@ -565,7 +565,7 @@ export function ClassSchedule() {
                               </div>
                         </div>
 
-                        {/* Error Banner */}
+
                         {isCalendarError && (
                               <div className="mb-6 p-4 rounded-lg border border-red-500/30 bg-red-500/10 flex items-center gap-3">
                                     <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
@@ -586,9 +586,9 @@ export function ClassSchedule() {
                               </div>
                         )}
 
-                        {/* View Controls */}
+
                         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                              {/* Calendar/List Toggle */}
+
                               <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-lg">
                                     <Button
                                           variant={viewMode === "calendar" ? "secondary" : "ghost"}
@@ -610,7 +610,7 @@ export function ClassSchedule() {
                                     </Button>
                               </div>
 
-                              {/* Date Navigation */}
+
                               <div className="flex items-center gap-4">
                                     <Button variant="outline" size="sm" onClick={goToToday}>
                                           Today
@@ -628,7 +628,7 @@ export function ClassSchedule() {
                                           </Button>
                                     </div>
 
-                                    {/* Day/Week/Month Toggle */}
+
                                     <div className="flex items-center p-1 bg-muted/50 rounded-lg">
                                           <Button
                                                 variant={dateViewMode === "day" ? "default" : "ghost"}
@@ -672,7 +672,7 @@ export function ClassSchedule() {
                                     </div>
                               </div>
 
-                              {/* Event Filter - Uses API filtering */}
+
                               <Select value={eventFilter} onValueChange={(v) => setEventFilter(v as EventFilter)}>
                                     <SelectTrigger className="w-36">
                                           <SelectValue placeholder="Filter" />
@@ -685,7 +685,7 @@ export function ClassSchedule() {
                               </Select>
                         </div>
 
-                        {/* Content Area */}
+
                         <div className="border border-border rounded-xl overflow-hidden bg-card/30">
                               {isLoading ? (
                                     <div className="flex items-center justify-center py-20">
@@ -710,7 +710,7 @@ export function ClassSchedule() {
                               )}
                         </div>
 
-                        {/* Stats */}
+
                         <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
                               <span>Total: {filteredEvents.length} classes</span>
                               <span>•</span>
@@ -720,7 +720,7 @@ export function ClassSchedule() {
                         </div>
                   </main>
 
-                  {/* Create Class Modal */}
+
                   <CreateClassModal
                         isOpen={showCreateModal}
                         onClose={() => setShowCreateModal(false)}
@@ -728,7 +728,7 @@ export function ClassSchedule() {
                         isLoading={createClassMutation.isPending}
                   />
 
-                  {/* Edit Class Modal */}
+
                   <EditClassModal
                         isOpen={showEditModal}
                         onClose={() => {
@@ -741,7 +741,7 @@ export function ClassSchedule() {
                         isLoading={updateClassMutation.isPending || updateSpecificInstanceMutation.isPending}
                   />
 
-                  {/* Delete Confirmation Dialog */}
+
                   <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                         <AlertDialogContent>
                               <AlertDialogHeader>

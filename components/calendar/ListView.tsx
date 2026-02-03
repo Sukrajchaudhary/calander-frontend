@@ -72,14 +72,14 @@ export function ListView({
             })
       }
 
-      // Get ordinal suffix for a number (1st, 2nd, 3rd, etc.)
+
       const getOrdinalSuffix = (n: number): string => {
             const s = ["th", "st", "nd", "rd"]
             const v = n % 100
             return n + (s[(v - 20) % 10] || s[v] || s[0])
       }
 
-      // Get monthly day badges (1st, 2nd, 3rd, etc.)
+
       const getMonthlyDayBadges = (days: number[]) => {
             return days.map((day) => (
                   <span
@@ -91,7 +91,7 @@ export function ListView({
             ))
       }
 
-      // Check if event date is in the past
+
       const isEventPast = (event: CalendarEvent): boolean => {
             try {
                   const eventDate = parseISO(event.scheduledDate)
@@ -235,7 +235,7 @@ export function ListView({
             )
       }
 
-      // Extract recurrence days from event if available (for fallback)
+
       const getRecurrenceDays = (event: CalendarEvent): DayOfWeek[] => {
             if (!event.isRecurring || !event.recurrence) return []
 
@@ -253,7 +253,7 @@ export function ListView({
             return status === "cancelled"
       }
 
-      // Group recurring events
+
       const groupedEvents = React.useMemo(() => {
             const groups = new Map<string, CalendarEvent[]>()
             const nonRecurring: CalendarEvent[] = []
@@ -291,7 +291,7 @@ export function ListView({
 
       return (
             <div className="w-full">
-                  {/* Table Header */}
+
                   <div className="grid grid-cols-[120px_80px_1fr_140px_120px_100px_120px_60px] gap-4 px-4 py-3 border-b border-border text-sm text-muted-foreground bg-muted/30">
                         <div>Date</div>
                         <div>Time</div>
@@ -303,7 +303,7 @@ export function ListView({
                         <div>Actions</div>
                   </div>
 
-                  {/* Table Body */}
+
                   <div className="divide-y divide-border">
                         {groupedEvents.map((event) => {
                               const recurrenceDays = getRecurrenceDays(event)
@@ -320,7 +320,7 @@ export function ListView({
                                                 cancelled && "bg-red-500/5"
                                           )}
                                     >
-                                          {/* Date */}
+
                                           <div className={cn(
                                                 "text-sm font-medium",
                                                 cancelled && "text-muted-foreground"
@@ -328,7 +328,7 @@ export function ListView({
                                                 {format(parseISO(event.scheduledDate), "EEE, MMM d")}
                                           </div>
 
-                                          {/* Time */}
+
                                           <div className={cn(
                                                 "text-sm text-muted-foreground",
                                                 cancelled && "line-through"
@@ -336,7 +336,7 @@ export function ListView({
                                                 {event.startTime}
                                           </div>
 
-                                          {/* Class Type */}
+
                                           <div className="flex items-center gap-2">
                                                 {cancelled && (
                                                       <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
@@ -366,7 +366,7 @@ export function ListView({
                                                 )}
                                           </div>
 
-                                          {/* Instructor */}
+
                                           <div className={cn(
                                                 "text-sm text-muted-foreground truncate",
                                                 cancelled && "line-through"
@@ -374,7 +374,7 @@ export function ListView({
                                                 {event.instructor || "—"}
                                           </div>
 
-                                          {/* Room */}
+
                                           <div className={cn(
                                                 "text-sm text-muted-foreground truncate",
                                                 cancelled && "line-through"
@@ -382,7 +382,7 @@ export function ListView({
                                                 {event.location || "—"}
                                           </div>
 
-                                          {/* Bookings */}
+
                                           <div className="text-center">
                                                 {cancelled ? (
                                                       <span className="text-muted-foreground">—</span>
@@ -403,7 +403,7 @@ export function ListView({
                                                 )}
                                           </div>
 
-                                          {/* Status */}
+
                                           <div>
                                                 <Popover>
                                                       <PopoverTrigger asChild>
@@ -486,7 +486,7 @@ export function ListView({
                                                 </Popover>
                                           </div>
 
-                                          {/* Actions */}
+
                                           <div>
                                                 <DropdownMenu>
                                                       <DropdownMenuTrigger asChild>
