@@ -307,22 +307,23 @@ export function ClassSchedule() {
       }
 
       // Handle status change - uses correct endpoint based on event type
-      const handleStatusChange = async (eventId: string, status: InstanceStatus, isRecurring: boolean = false) => {
+      const handleStatusChange = async (event: CalendarEvent, status: InstanceStatus) => {
             try {
                   // Map 'scheduled' to 'active' for API
                   const apiStatus = status === 'scheduled' ? 'active' : status
 
-                  if (isRecurring) {
-                        // For recurring class instances, use the instance status update endpoint
-                        await updateInstanceStatusMutation.mutateAsync({
-                              instanceId: eventId,
-                              data: { status },
+                  if (event.id === event.classId) {
+                        // For one-time classes or parent class definitions
+                        await updateClassStatusMutation.mutateAsync({
+                              classId: event.classId,
+                              status: apiStatus as ClassStatus,
                         })
                   } else {
-                        // For one-time classes or the parent class, use the class status endpoint
-                        await updateClassStatusMutation.mutateAsync({
-                              classId: eventId,
-                              status: apiStatus as ClassStatus,
+                        // For specific instances of recurring classes
+                        await updateSpecificInstanceMutation.mutateAsync({
+                              classId: event.classId,
+                              scheduledDate: event.scheduledDate,
+                              data: { status },
                         })
                   }
 

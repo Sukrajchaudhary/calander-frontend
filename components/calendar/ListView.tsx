@@ -30,7 +30,7 @@ import { MoreHorizontal, ChevronDown, RefreshCcw, Eye, Edit, XCircle, AlertTrian
 interface ListViewProps {
       events: CalendarEvent[]
       onEventClick?: (event: CalendarEvent) => void
-      onStatusChange?: (eventId: string, status: InstanceStatus, isRecurring: boolean) => void
+      onStatusChange?: (event: CalendarEvent, status: InstanceStatus) => void
       onDelete?: (event: CalendarEvent) => void
 }
 
@@ -415,7 +415,7 @@ export function ListView({
                                                       <PopoverContent className="w-56 p-0" align="start">
                                                             <div className="p-2 space-y-1">
                                                                   <button
-                                                                        onClick={() => onStatusChange?.(event.id, "scheduled", event.isRecurring)}
+                                                                        onClick={() => onStatusChange?.(event, "scheduled")}
                                                                         className={cn(
                                                                               "w-full text-left px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors",
                                                                               event.status === "scheduled" && "bg-muted"
@@ -425,7 +425,7 @@ export function ListView({
                                                                         Mark as scheduled
                                                                   </button>
                                                                   <button
-                                                                        onClick={() => onStatusChange?.(event.id, "completed", event.isRecurring)}
+                                                                        onClick={() => onStatusChange?.(event, "completed")}
                                                                         className={cn(
                                                                               "w-full text-left px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors",
                                                                               event.status === "completed" && "bg-muted"
@@ -435,7 +435,7 @@ export function ListView({
                                                                         Mark as completed
                                                                   </button>
                                                                   <button
-                                                                        onClick={() => onStatusChange?.(event.id, "cancelled", event.isRecurring)}
+                                                                        onClick={() => onStatusChange?.(event, "cancelled")}
                                                                         className={cn(
                                                                               "w-full text-left px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors",
                                                                               event.status === "cancelled" && "bg-muted"
@@ -507,7 +507,7 @@ export function ListView({
                                                             {cancelled ? (
                                                                   <DropdownMenuItem
                                                                         className="gap-2 text-emerald-500 focus:text-emerald-500"
-                                                                        onClick={() => onStatusChange?.(event.id, "scheduled", event.isRecurring)}
+                                                                        onClick={() => onStatusChange?.(event, "scheduled")}
                                                                   >
                                                                         <RefreshCcw className="h-4 w-4" />
                                                                         Restore Class
@@ -515,7 +515,7 @@ export function ListView({
                                                             ) : (
                                                                   <DropdownMenuItem
                                                                         className="gap-2 text-destructive focus:text-destructive"
-                                                                        onClick={() => onStatusChange?.(event.id, "cancelled", event.isRecurring)}
+                                                                        onClick={() => onStatusChange?.(event, "cancelled")}
                                                                   >
                                                                         <XCircle className="h-4 w-4" />
                                                                         Cancel Class
