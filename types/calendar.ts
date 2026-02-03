@@ -176,6 +176,22 @@ export interface UpdateInstanceRequest {
       capacity?: number
 }
 
+// Bulk update all instances request
+export interface UpdateAllInstancesRequest {
+      status?: InstanceStatus
+      startTime?: string
+      endTime?: string
+      location?: string
+      description?: string
+      capacity?: number
+}
+
+// Response for bulk update
+export interface BulkUpdateInstancesResponse {
+      updatedCount: number
+      instances: ClassInstance[]
+}
+
 // ===== API Response Types =====
 
 // Backend API response wrapper (actual structure from backend)

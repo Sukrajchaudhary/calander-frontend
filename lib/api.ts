@@ -6,6 +6,8 @@ import type {
       CreateClassRequest,
       UpdateClassRequest,
       UpdateInstanceRequest,
+      UpdateAllInstancesRequest,
+      BulkUpdateInstancesResponse,
       ApiResponse,
       PaginatedResponse,
       CreateClassResponse,
@@ -151,6 +153,15 @@ export const classApi = {
             }
             const { data } = await api.put(`/calander/${classId}/instances/specific`, instanceData, { params })
             return transformBackendResponse<ClassInstance>(data)
+      },
+
+      // Update all instances at once (PUT)
+      updateAllInstances: async (
+            classId: string,
+            instanceData: UpdateAllInstancesRequest
+      ): Promise<ApiResponse<BulkUpdateInstancesResponse>> => {
+            const { data } = await api.put(`/calander/${classId}/instances/all`, instanceData)
+            return transformBackendResponse<BulkUpdateInstancesResponse>(data)
       },
 }
 

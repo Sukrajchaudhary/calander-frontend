@@ -4,6 +4,7 @@ import type {
       CreateClassRequest,
       UpdateClassRequest,
       UpdateInstanceRequest,
+      UpdateAllInstancesRequest,
       GetClassesParams,
       GetInstancesParams,
       GetCalendarParams,
@@ -223,6 +224,36 @@ export function useUpdateSpecificInstance() {
             },
             onError: (error: any) => {
                   console.error('[useUpdateSpecificInstance] Error:', error.response?.data || error.message)
+            },
+      })
+}
+
+// Update all instances at once
+export function useUpdateAllInstances() {
+      const queryClient = useQueryClient()
+
+      return useMutation({
+            mutationFn: async ({
+                  classId,
+                  data,
+            }: {
+                  classId: string
+                  data: UpdateAllInstancesRequest
+            }) => {
+                  console.log('[useUpdateAllInstances] Updating all instances:', { classId, data })
+                  const response = await classApi.updateAllInstances(classId, data)
+                  console.log('[useUpdateAllInstances] Response:', response)
+                  return response
+            },
+            onSuccess: (_, variables) => {
+                  // Invalidate all instance-related queries
+                  queryClient.invalidateQueries({ queryKey: queryKeys.classInstances(variables.classId) })
+                  queryClient.invalidateQueries({ queryKey: ['instances'] })
+                  queryClient.invalidateQueries({ queryKey: ['calendar'] })
+                  queryClient.invalidateQueries({ queryKey: ['classes'] })
+            },
+            onError: (error: any) => {
+                  console.error('[useUpdateAllInstances] Error:', error.response?.data || error.message)
             },
       })
 }
