@@ -116,7 +116,7 @@ export const instanceApi = {
             instanceId: string,
             statusData: UpdateInstanceRequest
       ): Promise<ApiResponse<ClassInstance>> => {
-            const { data } = await api.patch(`/calander/instance/${instanceId}`, statusData)
+            const { data } = await api.patch(`/calander/${instanceId}/status`, statusData)
             return data
       },
 }
