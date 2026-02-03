@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, isPast, isBefore, startOfDay } from "date-fns"
 import { cn } from "@/lib/utils"
 import type { CalendarEvent, InstanceStatus, ClassStatus, DayOfWeek } from "@/types/calendar"
 import { DAYS_OF_WEEK, DAY_ABBREVIATIONS } from "@/types/calendar"
@@ -19,18 +19,26 @@ import {
       PopoverContent,
       PopoverTrigger,
 } from "@/components/ui/popover"
-import { MoreHorizontal, ChevronDown, RefreshCcw, Eye, Edit, XCircle, AlertTriangle } from "lucide-react"
+import {
+      Tooltip,
+      TooltipContent,
+      TooltipProvider,
+      TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { MoreHorizontal, ChevronDown, RefreshCcw, Eye, Edit, XCircle, AlertTriangle, Trash2 } from "lucide-react"
 
 interface ListViewProps {
       events: CalendarEvent[]
       onEventClick?: (event: CalendarEvent) => void
       onStatusChange?: (eventId: string, status: InstanceStatus, isRecurring: boolean) => void
+      onDelete?: (event: CalendarEvent) => void
 }
 
 export function ListView({
       events,
       onEventClick,
       onStatusChange,
+      onDelete,
 }: ListViewProps) {
       const getStatusBadge = (status: InstanceStatus | ClassStatus) => {
             switch (status) {
@@ -55,7 +63,7 @@ export function ListView({
                                     "inline-flex items-center justify-center h-5 w-5 rounded text-xs font-medium transition-colors",
                                     isActive
                                           ? "bg-amber-500 text-amber-950"
-                                          : "bg-muted text-muted-foreground"
+                                          : "bg-muted/50 text-muted-foreground/50"
                               )}
                         >
                               {DAY_ABBREVIATIONS[day]}
@@ -64,7 +72,170 @@ export function ListView({
             })
       }
 
-      // Extract recurrence days from event if available
+      // Get ordinal suffix for a number (1st, 2nd, 3rd, etc.)
+      const getOrdinalSuffix = (n: number): string => {
+            const s = ["th", "st", "nd", "rd"]
+            const v = n % 100
+            return n + (s[(v - 20) % 10] || s[v] || s[0])
+      }
+
+      // Get monthly day badges (1st, 2nd, 3rd, etc.)
+      const getMonthlyDayBadges = (days: number[]) => {
+            return days.map((day) => (
+                  <span
+                        key={day}
+                        className="inline-flex items-center justify-center min-w-[28px] h-6 px-1.5 rounded bg-amber-500 text-amber-950 text-xs font-medium"
+                  >
+                        {getOrdinalSuffix(day)}
+                  </span>
+            ))
+      }
+
+      // Check if event date is in the past
+      const isEventPast = (event: CalendarEvent): boolean => {
+            try {
+                  const eventDate = parseISO(event.scheduledDate)
+                  return isBefore(startOfDay(eventDate), startOfDay(new Date()))
+            } catch {
+                  return false
+            }
+      }
+
+
+      const getRecurrenceTooltipContent = (event: CalendarEvent & { allInstances?: CalendarEvent[] }) => {
+            if (!event.isRecurring) return null
+
+            const eventIsPast = isEventPast(event)
+            const instances = event.allInstances || []
+
+            const Content = () => {
+                  // If no recurrence data, show a simple fallback
+                  if (!event.recurrence) {
+                        return (
+                              <div className="flex flex-col gap-2">
+                                    <span className="text-sm text-white font-medium">Recurring Class</span>
+                                    <span className="text-xs text-gray-300">at {event.startTime}</span>
+                                    {eventIsPast && (
+                                          <span className="text-xs text-amber-400 mt-1">⏰ Past date</span>
+                                    )}
+                              </div>
+                        )
+                  }
+
+                  const recurrence = event.recurrence
+                  let info = null
+
+                  switch (recurrence.type) {
+                        case "daily": {
+                              const endDate = recurrence.endDate ? format(parseISO(recurrence.endDate), "MMM d, yyyy") : "No end"
+                              info = (
+                                    <>
+                                          <span className="text-sm text-white font-medium">Daily Recurring</span>
+                                          <span className="text-xs text-gray-300">at {event.startTime}</span>
+                                          <div className="flex gap-1 flex-wrap">
+                                                {getDayBadges(DAYS_OF_WEEK)}
+                                          </div>
+                                          <span className="text-xs text-gray-400 mt-1">Until: {endDate}</span>
+                                    </>
+                              )
+                              break
+                        }
+                        case "weekly": {
+                              const days = recurrence.dayWiseTimeSlots.map(d => d.day)
+                              const endDate = recurrence.endDate ? format(parseISO(recurrence.endDate), "MMM d, yyyy") : "No end"
+                              info = (
+                                    <>
+                                          <span className="text-sm text-white font-medium">Weekly Recurring</span>
+                                          <span className="text-xs text-gray-300">at {event.startTime}</span>
+                                          <div className="flex gap-1">
+                                                {getDayBadges(days)}
+                                          </div>
+                                          <span className="text-xs text-gray-400 mt-1">Until: {endDate}</span>
+                                    </>
+                              )
+                              break
+                        }
+                        case "monthly": {
+                              const monthlyDays = recurrence.monthlyDayWiseSlots.map(d => d.day)
+                              const endDate = recurrence.endDate ? format(parseISO(recurrence.endDate), "MMM d, yyyy") : "No end"
+                              info = (
+                                    <>
+                                          <span className="text-sm text-white font-medium">Monthly Recurring</span>
+                                          <span className="text-xs text-gray-300">at {event.startTime}</span>
+                                          <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-gray-400">Days of month:</span>
+                                                <div className="flex gap-1 flex-wrap max-w-[200px]">
+                                                      {getMonthlyDayBadges(monthlyDays)}
+                                                </div>
+                                          </div>
+                                          <span className="text-xs text-gray-400 mt-1">Until: {endDate}</span>
+                                    </>
+                              )
+                              break
+                        }
+                        case "custom": {
+                              const days = recurrence.dayWiseTimeSlots.map(d => d.day)
+                              const interval = recurrence.customInterval
+                              const endDate = recurrence.endDate ? format(parseISO(recurrence.endDate), "MMM d, yyyy") : "No end"
+                              info = (
+                                    <>
+                                          <span className="text-sm text-white font-medium">Custom Recurring</span>
+                                          <span className="text-xs text-gray-300">Every {interval} week{interval > 1 ? 's' : ''} at {event.startTime}</span>
+                                          <div className="flex gap-1">
+                                                {getDayBadges(days)}
+                                          </div>
+                                          <span className="text-xs text-gray-400 mt-1">Until: {endDate}</span>
+                                    </>
+                              )
+                              break
+                        }
+                        default:
+                              info = (
+                                    <>
+                                          <span className="text-sm text-white font-medium">Recurring Class</span>
+                                          <span className="text-xs text-gray-300">at {event.startTime}</span>
+                                    </>
+                              )
+                  }
+
+                  return (
+                        <div className="flex flex-col gap-2">
+                              {info}
+                              {eventIsPast && (
+                                    <span className="text-xs text-amber-400 mt-1">⏰ Past date</span>
+                              )}
+                        </div>
+                  )
+            }
+
+            return (
+                  <div className="flex flex-col gap-3">
+                        <Content />
+
+                        {instances.length > 0 && (
+                              <div className="pt-2 border-t border-zinc-700">
+                                    <p className="text-[10px] font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Scheduled Dates</p>
+                                    <div className="max-h-40 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+                                          {instances.map(inst => (
+                                                <div key={inst.id} className="text-xs text-zinc-300 flex justify-between items-center py-0.5">
+                                                      <span>{format(parseISO(inst.scheduledDate), "MMM d, yyyy")}</span>
+                                                      <span className={cn(
+                                                            "text-[10px] capitalize",
+                                                            inst.status === 'cancelled' ? "text-red-400" :
+                                                                  inst.status === 'completed' ? "text-emerald-400" : "text-zinc-500"
+                                                      )}>
+                                                            {inst.status}
+                                                      </span>
+                                                </div>
+                                          ))}
+                                    </div>
+                              </div>
+                        )}
+                  </div>
+            )
+      }
+
+      // Extract recurrence days from event if available (for fallback)
       const getRecurrenceDays = (event: CalendarEvent): DayOfWeek[] => {
             if (!event.isRecurring || !event.recurrence) return []
 
@@ -82,6 +253,42 @@ export function ListView({
             return status === "cancelled"
       }
 
+      // Group recurring events
+      const groupedEvents = React.useMemo(() => {
+            const groups = new Map<string, CalendarEvent[]>()
+            const nonRecurring: CalendarEvent[] = []
+
+            events.forEach(event => {
+                  if (event.isRecurring && event.classId) {
+                        if (!groups.has(event.classId)) {
+                              groups.set(event.classId, [])
+                        }
+                        groups.get(event.classId)!.push(event)
+                  } else {
+                        nonRecurring.push(event)
+                  }
+            })
+
+            const combinedEvents: (CalendarEvent & { allInstances?: CalendarEvent[] })[] = [...nonRecurring]
+
+            groups.forEach((instances) => {
+                  // Sort instances by date ascending
+                  instances.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))
+
+                  // Use the first filtered instance as the representative
+                  const representative = instances[0]
+
+                  // Add to list with attached instances
+                  combinedEvents.push({
+                        ...representative,
+                        allInstances: instances
+                  })
+            })
+
+            // Sort everything by date
+            return combinedEvents.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))
+      }, [events])
+
       return (
             <div className="w-full">
                   {/* Table Header */}
@@ -98,7 +305,7 @@ export function ListView({
 
                   {/* Table Body */}
                   <div className="divide-y divide-border">
-                        {events.map((event) => {
+                        {groupedEvents.map((event) => {
                               const recurrenceDays = getRecurrenceDays(event)
                               const bookedCount = event.bookedCount ?? 0
                               const capacity = event.capacity ?? 0
@@ -141,7 +348,21 @@ export function ListView({
                                                       {event.title}
                                                 </span>
                                                 {event.isRecurring && !cancelled && (
-                                                      <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />
+                                                      <TooltipProvider delayDuration={100}>
+                                                            <Tooltip>
+                                                                  <TooltipTrigger asChild>
+                                                                        <span className="cursor-help">
+                                                                              <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />
+                                                                        </span>
+                                                                  </TooltipTrigger>
+                                                                  <TooltipContent
+                                                                        side="top"
+                                                                        className="bg-zinc-900 border-zinc-700 px-3 py-3"
+                                                                  >
+                                                                        {getRecurrenceTooltipContent(event)}
+                                                                  </TooltipContent>
+                                                            </Tooltip>
+                                                      </TooltipProvider>
                                                 )}
                                           </div>
 
@@ -299,6 +520,18 @@ export function ListView({
                                                                         <XCircle className="h-4 w-4" />
                                                                         Cancel Class
                                                                   </DropdownMenuItem>
+                                                            )}
+                                                            {onDelete && (
+                                                                  <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                              className="gap-2 text-destructive focus:text-destructive"
+                                                                              onClick={() => onDelete(event)}
+                                                                        >
+                                                                              <Trash2 className="h-4 w-4" />
+                                                                              Delete Class
+                                                                        </DropdownMenuItem>
+                                                                  </>
                                                             )}
                                                       </DropdownMenuContent>
                                                 </DropdownMenu>

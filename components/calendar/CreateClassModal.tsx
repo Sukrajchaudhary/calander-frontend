@@ -102,13 +102,14 @@ export function CreateClassModal({
 
       // SlotRow Helper
       const renderSlotRow = (
+            key: string,
             label: string,
             slots: TimeSlot[],
             onAdd: () => void,
             onUpdate: (index: number, field: keyof TimeSlot, value: string) => void,
             onRemove: (index: number) => void
       ) => (
-            <div className="grid grid-cols-[120px_1fr] items-center gap-6 py-6 border-b border-muted/50 last:border-0 hover:bg-muted/5 transition-colors group px-2 min-w-max">
+            <div key={key} className="grid grid-cols-[120px_1fr] items-center gap-6 py-6 border-b border-muted/50 last:border-0 hover:bg-muted/5 transition-colors group px-2 min-w-max">
                   <div className="sticky left-0 bg-background z-10 font-semibold text-sm text-foreground/80 first-letter:uppercase text-center py-2 pr-4 border-r border-muted/50 shadow-[4px_0_4px_-2px_rgba(0,0,0,0.05)]">
                         {label}
                   </div>
@@ -516,7 +517,7 @@ export function CreateClassModal({
 
                                           <div className="space-y-4 pt-4 border-t">
                                                 {form.recurrenceType === "daily" && (
-                                                      renderSlotRow("Every Day", form.dailyTimeSlots, () => addTimeSlot("daily"), (i, f, v) => updateTimeSlot("daily", i, f, v), (i) => removeTimeSlot("daily", i))
+                                                      renderSlotRow("every-day", "Every Day", form.dailyTimeSlots, () => addTimeSlot("daily"), (i, f, v) => updateTimeSlot("daily", i, f, v), (i) => removeTimeSlot("daily", i))
                                                 )}
 
                                                 {(form.recurrenceType === "weekly" || form.recurrenceType === "custom" || form.recurrenceType === "monthly") && form.recurrenceStartDate && form.recurrenceEndDate && (
@@ -622,6 +623,7 @@ export function CreateClassModal({
                                                                                     form.selectedSpecificDates.map(dateStr => {
                                                                                           const slots = form.specificDateSlots.find(s => s.date === dateStr)?.timeSlots || []
                                                                                           return renderSlotRow(
+                                                                                                dateStr,
                                                                                                 format(new Date(dateStr), "MMM do"),
                                                                                                 slots,
                                                                                                 () => addSpecificDateSlot(dateStr),
@@ -633,6 +635,7 @@ export function CreateClassModal({
                                                                                     DAYS.filter(d => form.selectedWeeklyDays.includes(d.id)).map(dayDef => {
                                                                                           const daySlots = form.dayWiseTimeSlots.find(s => s.day === dayDef.id)?.timeSlots || []
                                                                                           return renderSlotRow(
+                                                                                                dayDef.id,
                                                                                                 dayDef.label,
                                                                                                 daySlots,
                                                                                                 () => addDayTimeSlot(dayDef.id),

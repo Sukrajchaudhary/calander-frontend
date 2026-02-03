@@ -12,6 +12,7 @@ import type {
       GetClassesParams,
       GetInstancesParams,
       GetCalendarParams,
+      ClassStatus,
 } from '@/types/calendar'
 
 // Create axios instance with base URL
@@ -50,7 +51,7 @@ export const healthApi = {
 
 // ===== Classes API =====
 export const classApi = {
-      // Get all classes with pagination and filters
+      // Get all classes with pagination, filters, and search
       getAll: async (params?: GetClassesParams): Promise<PaginatedResponse<Class>> => {
             const { data } = await api.get('/calander', { params })
             return data
@@ -68,9 +69,15 @@ export const classApi = {
             return data
       },
 
-      // Update a class
+      // Update a class (PUT for full updates)
       update: async (id: string, classData: UpdateClassRequest): Promise<ApiResponse<Class>> => {
             const { data } = await api.put(`/calander/${id}`, classData)
+            return data
+      },
+
+      // Update class status (PATCH for status-only updates)
+      updateStatus: async (id: string, status: ClassStatus): Promise<ApiResponse<Class>> => {
+            const { data } = await api.patch(`/calander/${id}/status`, { status })
             return data
       },
 
@@ -104,12 +111,12 @@ export const instanceApi = {
             return data
       },
 
-      // Update status (works for both recurring instances and one-time classes)
+      // Update instance status (PATCH for status updates)
       updateStatus: async (
-            id: string,
+            instanceId: string,
             statusData: UpdateInstanceRequest
-      ): Promise<ApiResponse<ClassInstance | Class>> => {
-            const { data } = await api.put(`/calander/${id}`, statusData)
+      ): Promise<ApiResponse<ClassInstance>> => {
+            const { data } = await api.patch(`/calander/instance/${instanceId}`, statusData)
             return data
       },
 }

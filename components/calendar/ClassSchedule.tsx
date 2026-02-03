@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from "react"
+import React, { useState, useMemo, useCallback } from "react"
 import {
       format,
       startOfWeek,
@@ -22,6 +22,16 @@ import {
       SelectTrigger,
       SelectValue,
 } from "@/components/ui/select"
+import {
+      AlertDialog,
+      AlertDialogAction,
+      AlertDialogCancel,
+      AlertDialogContent,
+      AlertDialogDescription,
+      AlertDialogFooter,
+      AlertDialogHeader,
+      AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { ToastContainer } from "@/components/ui/toast"
 import { useToast } from "@/hooks/useToast"
 import {
@@ -29,7 +39,9 @@ import {
       useCalendarView,
       useCreateClass,
       useUpdateClass,
+      useUpdateClassStatus,
       useUpdateInstanceStatus,
+      useDeleteClass,
 } from "@/hooks/useCalendarApi"
 import { WeekView } from "./WeekView"
 import { ListView } from "./ListView"
@@ -66,10 +78,22 @@ export function ClassSchedule() {
       const [currentDate, setCurrentDate] = useState(new Date())
       const [eventFilter, setEventFilter] = useState<EventFilter>("all")
       const [searchQuery, setSearchQuery] = useState("")
+      const [debouncedSearch, setDebouncedSearch] = useState("")
       const [selectedBranch, setSelectedBranch] = useState("branch1")
       const [showCreateModal, setShowCreateModal] = useState(false)
       const [showEditModal, setShowEditModal] = useState(false)
+      const [showDeleteDialog, setShowDeleteDialog] = useState(false)
       const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+      const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null)
+
+      // Debounce search query for API calls
+      React.useEffect(() => {
+            const timer = setTimeout(() => {
+                  setDebouncedSearch(searchQuery)
+            }, 500)
+            return () => clearTimeout(timer)
+      }, [searchQuery])
+
 
       // Calculate date range based on view mode
       const dateRange = useMemo(() => {
@@ -134,6 +158,7 @@ export function ClassSchedule() {
             refetch: refetchClasses,
       } = useClasses({
             status: statusFilter as ClassStatus | undefined,
+            search: debouncedSearch || undefined,
             page: 1,
             limit: 100,
       })
@@ -141,7 +166,9 @@ export function ClassSchedule() {
       // Mutations
       const createClassMutation = useCreateClass()
       const updateClassMutation = useUpdateClass()
-      const updateStatusMutation = useUpdateInstanceStatus()
+      const updateClassStatusMutation = useUpdateClassStatus()
+      const updateInstanceStatusMutation = useUpdateInstanceStatus()
+      const deleteClassMutation = useDeleteClass()
 
       // Transform API data to CalendarEvent format
       const events: CalendarEvent[] = useMemo(() => {
@@ -263,13 +290,26 @@ export function ClassSchedule() {
             setShowEditModal(true)
       }
 
+      // Handle status change - uses correct endpoint based on event type
       const handleStatusChange = async (eventId: string, status: InstanceStatus, isRecurring: boolean = false) => {
             try {
-                  await updateStatusMutation.mutateAsync({
-                        eventId,
-                        data: { status },
-                        isRecurring,
-                  })
+                  // Map 'scheduled' to 'active' for API
+                  const apiStatus = status === 'scheduled' ? 'active' : status
+
+                  if (isRecurring) {
+                        // For recurring class instances, use the instance status update endpoint
+                        await updateInstanceStatusMutation.mutateAsync({
+                              instanceId: eventId,
+                              data: { status },
+                        })
+                  } else {
+                        // For one-time classes or the parent class, use the class status endpoint
+                        await updateClassStatusMutation.mutateAsync({
+                              classId: eventId,
+                              status: apiStatus as ClassStatus,
+                        })
+                  }
+
                   success("Status Updated", `Class status changed to ${status}`)
                   refetchCalendar()
                   refetchClasses()
@@ -292,6 +332,32 @@ export function ClassSchedule() {
                   }
             }
       }
+
+      // Handle delete class
+      const handleDeleteClick = (event: CalendarEvent) => {
+            setEventToDelete(event)
+            setShowDeleteDialog(true)
+      }
+
+      const handleConfirmDelete = async () => {
+            if (!eventToDelete) return
+
+            try {
+                  await deleteClassMutation.mutateAsync(eventToDelete.classId || eventToDelete.id)
+                  success("Class Deleted", `"${eventToDelete.title}" has been deleted`)
+                  setShowDeleteDialog(false)
+                  setEventToDelete(null)
+                  refetchCalendar()
+                  refetchClasses()
+            } catch (err: any) {
+                  const errorData = err.response?.data
+                  showError(
+                        errorData?.title || "Delete Failed",
+                        errorData?.message || err.message || "Failed to delete class"
+                  )
+            }
+      }
+
 
       const handleCreateClass = async (data: CreateClassRequest) => {
             try {
@@ -594,6 +660,7 @@ export function ClassSchedule() {
                                           events={filteredEvents}
                                           onEventClick={handleEventClick}
                                           onStatusChange={handleStatusChange}
+                                          onDelete={handleDeleteClick}
                                     />
                               )}
                         </div>
@@ -629,6 +696,34 @@ export function ClassSchedule() {
                         event={selectedEvent}
                         isLoading={updateClassMutation.isPending}
                   />
+
+                  {/* Delete Confirmation Dialog */}
+                  <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                        <AlertDialogContent>
+                              <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Class</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                          Are you sure you want to delete "{eventToDelete?.title}"? This action cannot be undone.
+                                          {eventToDelete?.isRecurring && (
+                                                <span className="block mt-2 text-amber-400">
+                                                      This is a recurring class. All future instances will also be deleted.
+                                                </span>
+                                          )}
+                                    </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setEventToDelete(null)}>
+                                          Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                          onClick={handleConfirmDelete}
+                                          className="bg-destructive text-white hover:bg-destructive/90"
+                                    >
+                                          {deleteClassMutation.isPending ? "Deleting..." : "Delete"}
+                                    </AlertDialogAction>
+                              </AlertDialogFooter>
+                        </AlertDialogContent>
+                  </AlertDialog>
             </div>
       )
 }

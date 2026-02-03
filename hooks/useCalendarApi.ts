@@ -133,20 +133,51 @@ export function useInstances(params: GetInstancesParams) {
       })
 }
 
+// Update class status (for both one-time and recurring classes)
+export function useUpdateClassStatus() {
+      const queryClient = useQueryClient()
+
+      return useMutation({
+            mutationFn: async ({
+                  classId,
+                  status,
+            }: {
+                  classId: string
+                  status: ClassStatus
+            }) => {
+                  console.log('[useUpdateClassStatus] Updating:', { classId, status })
+                  const response = await classApi.updateStatus(classId, status)
+                  console.log('[useUpdateClassStatus] Response:', response)
+                  return response
+            },
+            onSuccess: (_, variables) => {
+                  // Invalidate all related queries
+                  queryClient.invalidateQueries({ queryKey: queryKeys.classes })
+                  queryClient.invalidateQueries({ queryKey: queryKeys.class(variables.classId) })
+                  queryClient.invalidateQueries({ queryKey: ['calendar'] })
+                  queryClient.invalidateQueries({ queryKey: ['instances'] })
+                  queryClient.invalidateQueries({ queryKey: ['classInstances'] })
+            },
+            onError: (error: any) => {
+                  console.error('[useUpdateClassStatus] Error:', error.response?.data || error.message)
+            },
+      })
+}
+
+// Update instance status (for recurring class instances only)
 export function useUpdateInstanceStatus() {
       const queryClient = useQueryClient()
 
       return useMutation({
             mutationFn: async ({
-                  eventId,
+                  instanceId,
                   data,
             }: {
-                  eventId: string
+                  instanceId: string
                   data: UpdateInstanceRequest
-                  isRecurring?: boolean // kept for compatibility but not used for endpoint selection
             }) => {
-                  console.log('[useUpdateInstanceStatus] Updating:', { eventId, data })
-                  const response = await instanceApi.updateStatus(eventId, data)
+                  console.log('[useUpdateInstanceStatus] Updating:', { instanceId, data })
+                  const response = await instanceApi.updateStatus(instanceId, data)
                   console.log('[useUpdateInstanceStatus] Response:', response)
                   return response
             },

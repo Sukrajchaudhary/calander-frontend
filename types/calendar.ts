@@ -74,6 +74,7 @@ export interface Class {
       instructor?: string
       location?: string
       capacity?: number
+      availability?: boolean
       isRecurring: boolean
       status: ClassStatus
       // One-time class fields
@@ -110,6 +111,7 @@ export interface CalendarEvent {
       instructor?: string
       location?: string
       capacity?: number
+      availability?: boolean
       bookedCount?: number
       scheduledDate: string
       startTime: string
@@ -128,6 +130,7 @@ export interface CreateOneTimeClassRequest {
       instructor?: string
       location?: string
       capacity?: number
+      availability?: boolean
       isRecurring: false
       scheduledDate: string
       startTime: string
@@ -141,6 +144,7 @@ export interface CreateRecurringClassRequest {
       instructor?: string
       location?: string
       capacity?: number
+      availability?: boolean
       isRecurring: true
       recurrence: RecurrenceConfig
 }
@@ -153,6 +157,7 @@ export interface UpdateClassRequest {
       instructor?: string
       location?: string
       capacity?: number
+      availability?: boolean
       status?: ClassStatus
 }
 
@@ -231,6 +236,7 @@ export interface GetClassesParams {
       limit?: number
       status?: ClassStatus
       isRecurring?: boolean
+      availability?: boolean
       startDate?: string
       endDate?: string
       search?: string

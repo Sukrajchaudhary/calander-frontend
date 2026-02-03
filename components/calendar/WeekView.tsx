@@ -6,7 +6,8 @@ import type {
   InstanceStatus,
   ClassStatus,
 } from "@/types/calendar";
-import { User, MapPin, Users, Clock, XCircle } from "lucide-react";
+import { User, MapPin, Users, Clock, XCircle, RefreshCcw } from "lucide-react";
+
 
 interface WeekViewProps {
   currentDate: Date;
@@ -167,14 +168,19 @@ export function WeekView({ currentDate, events, onEventClick }: WeekViewProps) {
                         </div>
 
                         {/* Title */}
-                        <div
-                          className={cn(
-                            "font-medium text-sm text-foreground line-clamp-2",
-                            isCancelled(event.status) &&
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={cn(
+                              "font-medium text-sm text-foreground line-clamp-2",
+                              isCancelled(event.status) &&
                               "line-through text-muted-foreground",
+                            )}
+                          >
+                            {event.title}
+                          </span>
+                          {event.isRecurring && !isCancelled(event.status) && (
+                            <RefreshCcw className="h-3 w-3 text-amber-500 shrink-0" />
                           )}
-                        >
-                          {event.title}
                         </div>
 
                         {event.instructor && (
