@@ -678,7 +678,6 @@ export function ClassSchedule() {
                                     </SelectTrigger>
                                     <SelectContent>
                                           <SelectItem value="all">All Events</SelectItem>
-                                          <SelectItem value="scheduled">Scheduled</SelectItem>
                                           <SelectItem value="completed">Completed</SelectItem>
                                           <SelectItem value="cancelled">Cancelled</SelectItem>
                                     </SelectContent>
@@ -713,8 +712,6 @@ export function ClassSchedule() {
                         {/* Stats */}
                         <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
                               <span>Total: {filteredEvents.length} classes</span>
-                              <span>•</span>
-                              <span>Scheduled: {filteredEvents.filter(e => e.status === "scheduled").length}</span>
                               <span>•</span>
                               <span>Completed: {filteredEvents.filter(e => e.status === "completed").length}</span>
                               <span>•</span>

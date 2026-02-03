@@ -177,6 +177,20 @@ export interface UpdateInstanceRequest {
 }
 
 // ===== API Response Types =====
+
+// Backend API response wrapper (actual structure from backend)
+export interface BackendApiResponse<T> {
+      title: string
+      message: string
+      data: T
+      pagination?: {
+            page: number
+            limit: number
+            total: number
+            totalPages: number
+      }
+}
+
 export interface ApiResponse<T> {
       success: boolean
       message?: string

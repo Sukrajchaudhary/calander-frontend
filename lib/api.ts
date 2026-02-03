@@ -41,6 +41,39 @@ api.interceptors.response.use(
       }
 )
 
+// Transform backend response to frontend expected format
+function transformBackendResponse<T>(response: any): ApiResponse<T> {
+      // If the response already has 'success' field, return as-is
+      if (response.success !== undefined) {
+            return response
+      }
+      // Otherwise, transform from backend format
+      return {
+            success: true,
+            message: response.message,
+            data: response.data
+      }
+}
+
+// Transform paginated backend response to frontend expected format
+function transformPaginatedResponse<T>(response: any): PaginatedResponse<T> {
+      // If the response already has 'success' field, return as-is
+      if (response.success !== undefined) {
+            return response
+      }
+      // Otherwise, transform from backend format
+      return {
+            success: true,
+            data: response.data || [],
+            pagination: response.pagination || {
+                  page: 1,
+                  limit: 10,
+                  total: 0,
+                  totalPages: 0
+            }
+      }
+}
+
 // ===== Health Check =====
 export const healthApi = {
       check: async (): Promise<{ status: string }> => {
@@ -54,37 +87,40 @@ export const classApi = {
       // Get all classes with pagination, filters, and search
       getAll: async (params?: GetClassesParams): Promise<PaginatedResponse<Class>> => {
             const { data } = await api.get('/calander', { params })
-            return data
+            console.log('[classApi.getAll] Raw response:', data)
+            const transformed = transformPaginatedResponse<Class>(data)
+            console.log('[classApi.getAll] Transformed response:', transformed)
+            return transformed
       },
 
       // Get single class by ID
       getById: async (id: string): Promise<ApiResponse<Class>> => {
             const { data } = await api.get(`/calander/${id}`)
-            return data
+            return transformBackendResponse<Class>(data)
       },
 
       // Create a new class (one-time or recurring)
       create: async (classData: CreateClassRequest): Promise<ApiResponse<CreateClassResponse>> => {
             const { data } = await api.post('/calander', classData)
-            return data
+            return transformBackendResponse<CreateClassResponse>(data)
       },
 
       // Update a class (PUT for full updates)
       update: async (id: string, classData: UpdateClassRequest): Promise<ApiResponse<Class>> => {
             const { data } = await api.put(`/calander/${id}`, classData)
-            return data
+            return transformBackendResponse<Class>(data)
       },
 
       // Update class status (PATCH for status-only updates)
       updateStatus: async (id: string, status: ClassStatus): Promise<ApiResponse<Class>> => {
             const { data } = await api.patch(`/calander/${id}/status`, { status })
-            return data
+            return transformBackendResponse<Class>(data)
       },
 
       // Delete a class
       delete: async (id: string): Promise<ApiResponse<null>> => {
             const { data } = await api.delete(`/calander/${id}`)
-            return data
+            return transformBackendResponse<null>(data)
       },
 
       // Get class instances by class ID
@@ -93,13 +129,13 @@ export const classApi = {
             params?: { page?: number; limit?: number }
       ): Promise<PaginatedResponse<ClassInstance>> => {
             const { data } = await api.get(`/calander/${classId}/instances`, { params })
-            return data
+            return transformPaginatedResponse<ClassInstance>(data)
       },
 
       // Regenerate instances for a recurring class
       regenerateInstances: async (classId: string): Promise<ApiResponse<{ instanceCount: number }>> => {
             const { data } = await api.post(`/calander/${classId}/regenerate`)
-            return data
+            return transformBackendResponse<{ instanceCount: number }>(data)
       },
 
       // Update specific instance by date (PUT)
@@ -114,7 +150,7 @@ export const classApi = {
                   params.startTime = startTime;
             }
             const { data } = await api.put(`/calander/${classId}/instances/specific`, instanceData, { params })
-            return data
+            return transformBackendResponse<ClassInstance>(data)
       },
 }
 
@@ -123,7 +159,7 @@ export const instanceApi = {
       // Get all instances in date range
       getByDateRange: async (params: GetInstancesParams): Promise<ApiResponse<ClassInstance[]>> => {
             const { data } = await api.get('/calander/instances', { params })
-            return data
+            return transformBackendResponse<ClassInstance[]>(data)
       },
 
       // Update instance status (PATCH for status updates)
@@ -132,7 +168,7 @@ export const instanceApi = {
             statusData: UpdateInstanceRequest
       ): Promise<ApiResponse<ClassInstance>> => {
             const { data } = await api.patch(`/calander/${instanceId}/status`, statusData)
-            return data
+            return transformBackendResponse<ClassInstance>(data)
       },
 }
 
@@ -141,7 +177,7 @@ export const calendarApi = {
       // Get calendar view (unified view of all events)
       getCalendarView: async (params: GetCalendarParams): Promise<ApiResponse<CalendarEvent[]>> => {
             const { data } = await api.get('/calander/calendar', { params })
-            return data
+            return transformBackendResponse<CalendarEvent[]>(data)
       },
 }
 
